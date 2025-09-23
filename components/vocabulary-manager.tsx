@@ -76,7 +76,7 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
       }
     })
     setDisplayDates(newDisplayDates)
-  }, [])
+  }, [vocabulary])
 
   // Mock vocabulary data
   const [vocabulary, setVocabulary] = useState<VocabularyItem[]>([
@@ -247,12 +247,6 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
 
     setVocabulary([newItem, ...vocabulary])
     setEditingWord(newItem.id)
-  }
-
-  // Format date
-  const formatDate = (date: Date) => {
-    // Always return consistent format for SSR
-    return date.toLocaleDateString("ko-KR", { month: "short", day: "numeric" })
   }
 
   return (
@@ -504,7 +498,7 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
                                   ))}
                                 </div>
                                 <div className="text-xs text-muted-foreground">
-                                  다음 복습: {displayDates[item.id] || formatDate(item.nextReview)}
+                                  다음 복습: {isClient ? displayDates[item.id] : item.nextReview.toISOString().split('T')[0]}
                                 </div>
                               </div>
 
@@ -573,8 +567,7 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
                             ))}
                             {item.tags.length > 2 && <Badge variant="outline">+{item.tags.length - 2}</Badge>}
                           </div>
-                          <div className="text-muted-foreground">{formatDate(item.nextReview)}</div>
-                          <div className="text-muted-foreground">{displayDates[item.id] || formatDate(item.nextReview)}</div>
+                          <div className="text-muted-foreground">{isClient ? displayDates[item.id] : item.nextReview.toISOString().split('T')[0]}</div>
                         </div>
                       </CardContent>
                     </Card>
