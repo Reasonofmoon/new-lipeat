@@ -3,7 +3,7 @@
 import { Label } from "@/components/ui/label"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { BookOpen, Search, SortAsc, Filter, Play, Check, X, Edit, Trash2, Plus, Volume2 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -54,6 +54,11 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0)
   const [showAnswer, setShowAnswer] = useState(false)
   const [editingWord, setEditingWord] = useState<string | null>(null)
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   // Mock vocabulary data
   const [vocabulary, setVocabulary] = useState<VocabularyItem[]>([
@@ -68,8 +73,8 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
       ],
       tags: ["business", "meetings"],
       proficiency: 70,
-      lastReviewed: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-      nextReview: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
+      lastReviewed: new Date('2024-12-20T10:00:00Z'), // 3 days ago
+      nextReview: new Date('2024-12-25T10:00:00Z'), // 2 days from now
       source: "Business English Lesson",
     },
     {
@@ -83,8 +88,8 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
       ],
       tags: ["business", "discussions"],
       proficiency: 50,
-      lastReviewed: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-      nextReview: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+      lastReviewed: new Date('2024-12-18T10:00:00Z'),
+      nextReview: new Date('2024-12-24T10:00:00Z'),
       source: "Business English Lesson",
     },
     {
@@ -98,8 +103,8 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
       ],
       tags: ["business", "general"],
       proficiency: 85,
-      lastReviewed: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      nextReview: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+      lastReviewed: new Date('2024-12-21T10:00:00Z'),
+      nextReview: new Date('2024-12-28T10:00:00Z'),
       source: "Business English Lesson",
     },
     {
@@ -113,8 +118,8 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
       ],
       tags: ["business", "meetings", "presentations"],
       proficiency: 60,
-      lastReviewed: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
-      nextReview: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+      lastReviewed: new Date('2024-12-19T10:00:00Z'),
+      nextReview: new Date('2024-12-24T10:00:00Z'),
       source: "Business English Lesson",
     },
     {
@@ -128,8 +133,8 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
       ],
       tags: ["business", "meetings", "phrasal verb"],
       proficiency: 40,
-      lastReviewed: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
-      nextReview: new Date(Date.now()),
+      lastReviewed: new Date('2024-12-17T10:00:00Z'),
+      nextReview: new Date('2024-12-23T10:00:00Z'),
       source: "Business English Lesson",
     },
   ])
@@ -228,6 +233,10 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
 
   // Format date
   const formatDate = (date: Date) => {
+    if (!isClient) {
+      return date.toLocaleDateString("ko-KR", { month: "short", day: "numeric" })
+    }
+
     const today = new Date()
     const tomorrow = new Date()
     tomorrow.setDate(today.getDate() + 1)
