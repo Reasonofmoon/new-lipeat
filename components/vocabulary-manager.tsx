@@ -55,9 +55,27 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
   const [showAnswer, setShowAnswer] = useState(false)
   const [editingWord, setEditingWord] = useState<string | null>(null)
   const [isClient, setIsClient] = useState(false)
+  const [displayDates, setDisplayDates] = useState<Record<string, string>>({})
 
   useEffect(() => {
     setIsClient(true)
+    
+    // Update display dates with dynamic formatting after client hydration
+    const newDisplayDates: Record<string, string> = {}
+    vocabulary.forEach(item => {
+      const today = new Date()
+      const tomorrow = new Date()
+      tomorrow.setDate(today.getDate() + 1)
+      
+      if (item.nextReview.toDateString() === today.toDateString()) {
+        newDisplayDates[item.id] = "오늘"
+      } else if (item.nextReview.toDateString() === tomorrow.toDateString()) {
+        newDisplayDates[item.id] = "내일"
+      } else {
+        newDisplayDates[item.id] = item.nextReview.toLocaleDateString("ko-KR", { month: "short", day: "numeric" })
+      }
+    })
+    setDisplayDates(newDisplayDates)
   }, [])
 
   // Mock vocabulary data
@@ -233,17 +251,7 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
 
   // Format date
   const formatDate = (date: Date) => {
-    if (!isClient) {
-      return date.toLocaleDateString("ko-KR", { month: "short", day: "numeric" })
-    }
-
-    const today = new Date()
-    const tomorrow = new Date()
-    tomorrow.setDate(today.getDate() + 1)
-
-    if (date.toDateString() === today.toDateString()) return "오늘"
-    if (date.toDateString() === tomorrow.toDateString()) return "내일"
-
+    // Always return consistent format for SSR
     return date.toLocaleDateString("ko-KR", { month: "short", day: "numeric" })
   }
 
@@ -496,7 +504,7 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
                                   ))}
                                 </div>
                                 <div className="text-xs text-muted-foreground">
-                                  다음 복습: {formatDate(item.nextReview)}
+                                  다음 복습: {displayDates[item.id] || formatDate(item.nextReview)}
                                 </div>
                               </div>
 
@@ -566,6 +574,7 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
                             {item.tags.length > 2 && <Badge variant="outline">+{item.tags.length - 2}</Badge>}
                           </div>
                           <div className="text-muted-foreground">{formatDate(item.nextReview)}</div>
+                          <div className="text-muted-foreground">{displayDates[item.id] || formatDate(item.nextReview)}</div>
                         </div>
                       </CardContent>
                     </Card>
