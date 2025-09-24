@@ -36,8 +36,8 @@ interface VocabularyItem {
   examples: string[]
   tags: string[]
   proficiency: number // 0-100
-  lastReviewed: Date
-  nextReview: Date
+  lastReviewed: string // ISO string
+  nextReview: string // ISO string
   source?: string
 }
 
@@ -67,12 +67,14 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
       const tomorrow = new Date()
       tomorrow.setDate(today.getDate() + 1)
       
-      if (item.nextReview.toDateString() === today.toDateString()) {
+      const nextReviewDate = new Date(item.nextReview)
+      
+      if (nextReviewDate.toDateString() === today.toDateString()) {
         newDisplayDates[item.id] = "오늘"
-      } else if (item.nextReview.toDateString() === tomorrow.toDateString()) {
+      } else if (nextReviewDate.toDateString() === tomorrow.toDateString()) {
         newDisplayDates[item.id] = "내일"
       } else {
-        newDisplayDates[item.id] = item.nextReview.toLocaleDateString("ko-KR", { month: "short", day: "numeric" })
+        newDisplayDates[item.id] = nextReviewDate.toLocaleDateString("ko-KR", { month: "short", day: "numeric" })
       }
     })
     setDisplayDates(newDisplayDates)
@@ -91,8 +93,8 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
       ],
       tags: ["business", "meetings"],
       proficiency: 70,
-      lastReviewed: new Date('2024-12-20T10:00:00Z'), // 3 days ago
-      nextReview: new Date('2024-12-25T10:00:00Z'), // 2 days from now
+      lastReviewed: '2024-12-20T10:00:00Z', // 3 days ago
+      nextReview: '2024-12-25T10:00:00Z', // 2 days from now
       source: "Business English Lesson",
     },
     {
@@ -106,8 +108,8 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
       ],
       tags: ["business", "discussions"],
       proficiency: 50,
-      lastReviewed: new Date('2024-12-18T10:00:00Z'),
-      nextReview: new Date('2024-12-24T10:00:00Z'),
+      lastReviewed: '2024-12-18T10:00:00Z',
+      nextReview: '2024-12-24T10:00:00Z',
       source: "Business English Lesson",
     },
     {
@@ -121,8 +123,8 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
       ],
       tags: ["business", "general"],
       proficiency: 85,
-      lastReviewed: new Date('2024-12-21T10:00:00Z'),
-      nextReview: new Date('2024-12-28T10:00:00Z'),
+      lastReviewed: '2024-12-21T10:00:00Z',
+      nextReview: '2024-12-28T10:00:00Z',
       source: "Business English Lesson",
     },
     {
@@ -136,8 +138,8 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
       ],
       tags: ["business", "meetings", "presentations"],
       proficiency: 60,
-      lastReviewed: new Date('2024-12-19T10:00:00Z'),
-      nextReview: new Date('2024-12-24T10:00:00Z'),
+      lastReviewed: '2024-12-19T10:00:00Z',
+      nextReview: '2024-12-24T10:00:00Z',
       source: "Business English Lesson",
     },
     {
@@ -151,8 +153,8 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
       ],
       tags: ["business", "meetings", "phrasal verb"],
       proficiency: 40,
-      lastReviewed: new Date('2024-12-17T10:00:00Z'),
-      nextReview: new Date('2024-12-23T10:00:00Z'),
+      lastReviewed: '2024-12-17T10:00:00Z',
+      nextReview: '2024-12-23T10:00:00Z',
       source: "Business English Lesson",
     },
   ])
@@ -164,7 +166,7 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
       item.translation.toLowerCase().includes(searchTerm.toLowerCase())
 
     if (filter === "all") return matchesSearch
-    if (filter === "review-today") return matchesSearch && item.nextReview <= new Date()
+    if (filter === "review-today") return matchesSearch && new Date(item.nextReview) <= new Date()
     if (filter === "low-proficiency") return matchesSearch && item.proficiency < 50
     if (filter === "business") return matchesSearch && item.tags.includes("business")
 
@@ -182,7 +184,7 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
   })
 
   // Get words due for review today
-  const wordsForReview = vocabulary.filter((item) => item.nextReview <= new Date())
+  const wordsForReview = vocabulary.filter((item) => new Date(item.nextReview) <= new Date())
 
   // Handle quiz answer
   const handleQuizAnswer = (correct: boolean) => {
@@ -204,14 +206,14 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
 
     // Update review dates
     const now = new Date()
-    updatedVocabulary.find((item) => item.id === currentWord.id)!.lastReviewed = now
+    updatedVocabulary.find((item) => item.id === currentWord.id)!.lastReviewed = now.toISOString()
 
     // Calculate next review date based on proficiency
     // Higher proficiency = longer interval
     const daysUntilNextReview = Math.max(1, Math.floor(currentWord.proficiency / 20))
     const nextReview = new Date()
     nextReview.setDate(now.getDate() + daysUntilNextReview)
-    updatedVocabulary.find((item) => item.id === currentWord.id)!.nextReview = nextReview
+    updatedVocabulary.find((item) => item.id === currentWord.id)!.nextReview = nextReview.toISOString()
 
     setVocabulary(updatedVocabulary)
     setShowAnswer(false)
@@ -233,6 +235,7 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
 
   // Add new vocabulary item
   const addVocabularyItem = () => {
+    const now = new Date()
     const newItem: VocabularyItem = {
       id: Date.now().toString(),
       word: "",
@@ -241,8 +244,8 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
       examples: [""],
       tags: [],
       proficiency: 0,
-      lastReviewed: new Date(),
-      nextReview: new Date(),
+      lastReviewed: now.toISOString(),
+      nextReview: now.toISOString(),
     }
 
     setVocabulary([newItem, ...vocabulary])
@@ -498,7 +501,7 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
                                   ))}
                                 </div>
                                 <div className="text-xs text-muted-foreground">
-                                  다음 복습: {isClient ? displayDates[item.id] : item.nextReview.toISOString().split('T')[0]}
+                                  다음 복습: {isClient ? displayDates[item.id] : item.nextReview.split('T')[0]}
                                 </div>
                               </div>
 
@@ -568,6 +571,7 @@ const VocabularyManager: React.FC<VocabularyManagerProps> = ({ userProfile, onPr
                             {item.tags.length > 2 && <Badge variant="outline">+{item.tags.length - 2}</Badge>}
                           </div>
                           <div className="text-muted-foreground">{isClient ? displayDates[item.id] : item.nextReview.toISOString().split('T')[0]}</div>
+                          <div className="text-muted-foreground">{isClient ? displayDates[item.id] : item.nextReview.split('T')[0]}</div>
                         </div>
                       </CardContent>
                     </Card>
