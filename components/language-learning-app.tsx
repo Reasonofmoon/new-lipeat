@@ -6,8 +6,6 @@ import { VideoSearch } from "@/components/video-search"
 import { VideoPlayer } from "@/components/video-player"
 import { SubtitleEditor } from "@/components/subtitle-editor"
 import { SubtitleUploader } from "@/components/subtitle-uploader"
-import { LearningDashboard } from "@/components/learning-dashboard"
-import { VocabularyList } from "@/components/vocabulary-list"
 import { useToast } from "@/hooks/use-toast"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
@@ -177,8 +175,7 @@ const LanguageLearningApp = () => {
       </header>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-5 mb-4">
-          <TabsTrigger value="dashboard">대시보드</TabsTrigger>
+        <TabsList className="grid grid-cols-3 mb-4">
           <TabsTrigger value="search">영상 검색</TabsTrigger>
           <TabsTrigger value="player" disabled={!selectedVideo}>
             영상 플레이어
@@ -186,12 +183,7 @@ const LanguageLearningApp = () => {
           <TabsTrigger value="editor" disabled={!selectedVideo || subtitles.length === 0}>
             자막 편집기
           </TabsTrigger>
-          <TabsTrigger value="vocabulary">단어장</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="dashboard">
-          <LearningDashboard savedVocabulary={savedVocabulary} onVideoSelect={handleVideoSelect} />
-        </TabsContent>
 
         <TabsContent value="search">
           <VideoSearch onVideoSelect={handleVideoSelect} learningLanguage={learningLanguage} />
@@ -240,15 +232,6 @@ const LanguageLearningApp = () => {
               nativeLanguage={nativeLanguage}
             />
           )}
-        </TabsContent>
-
-        <TabsContent value="vocabulary">
-          <VocabularyList
-            vocabulary={savedVocabulary}
-            onVocabularyUpdate={setSavedVocabulary}
-            learningLanguage={learningLanguage}
-            nativeLanguage={nativeLanguage}
-          />
         </TabsContent>
       </Tabs>
     </div>
