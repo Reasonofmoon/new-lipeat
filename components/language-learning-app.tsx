@@ -193,7 +193,7 @@ const LanguageLearningApp = () => {
           {selectedVideo && (
             <>
               {showSubtitleAlert && (
-                <Alert variant="warning" className="mb-4">
+                <Alert className="mb-4">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>자막이 필요합니다</AlertTitle>
                   <AlertDescription>
