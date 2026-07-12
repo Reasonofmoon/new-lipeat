@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { SubtitleItem } from "@/components/language-learning-app"
+import { parseSrt, parseVtt, parseTxt } from "@/modules/shadowing/lib/subtitles/parse"
 import { useToast } from "@/hooks/use-toast"
 
 interface SubtitleUploaderProps {
@@ -47,11 +48,11 @@ export function SubtitleUploader({ videoId, onSubtitlesUploaded }: SubtitleUploa
       let parsedSubtitles: SubtitleItem[] = []
 
       if (fileExtension === "srt") {
-        parsedSubtitles = parseSrtSubtitles(fileContent)
+        parsedSubtitles = parseSrt(fileContent)
       } else if (fileExtension === "vtt") {
-        parsedSubtitles = parseVttSubtitles(fileContent)
+        parsedSubtitles = parseVtt(fileContent)
       } else if (fileExtension === "txt") {
-        parsedSubtitles = parseTxtSubtitles(fileContent)
+        parsedSubtitles = parseTxt(fileContent)
       }
 
       if (parsedSubtitles.length === 0) {
@@ -151,138 +152,6 @@ export function SubtitleUploader({ videoId, onSubtitlesUploaded }: SubtitleUploa
       reader.onerror = (e) => reject(new Error("Failed to read file."))
       reader.readAsText(file)
     })
-  }
-
-  // Parse SRT subtitles
-  const parseSrtSubtitles = (content: string): SubtitleItem[] => {
-    const subtitles: SubtitleItem[] = []
-    const blocks = content.trim().split(/\r?\n\r?\n/)
-
-    for (const block of blocks) {
-      const lines = block.split(/\r?\n/)
-      if (lines.length < 3) continue
-
-      // Parse subtitle index
-      const id = lines[0].trim()
-
-      // Parse time range
-      const timeRange = lines[1].match(/(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})/)
-      if (!timeRange) continue
-
-      const startTime = convertSrtTimeToSeconds(timeRange[1])
-      const endTime = convertSrtTimeToSeconds(timeRange[2])
-
-      // Parse text
-      const text = lines.slice(2).join(" ")
-
-      subtitles.push({
-        id,
-        startTime,
-        endTime,
-        text,
-      })
-    }
-
-    return subtitles
-  }
-
-  // Parse VTT subtitles
-  const parseVttSubtitles = (content: string): SubtitleItem[] => {
-    const subtitles: SubtitleItem[] = []
-    const lines = content.trim().split(/\r?\n/)
-
-    let currentId = ""
-    let currentStartTime = 0
-    let currentEndTime = 0
-    let currentText = ""
-    let index = 0
-
-    // Skip the WEBVTT header
-    let i = 0
-    while (i < lines.length && !lines[i].includes("-->")) {
-      i++
-    }
-
-    for (; i < lines.length; i++) {
-      const line = lines[i].trim()
-
-      if (line === "") {
-        // End of a subtitle block
-        if (currentText) {
-          subtitles.push({
-            id: currentId || String(index++),
-            startTime: currentStartTime,
-            endTime: currentEndTime,
-            text: currentText.trim(),
-          })
-          currentText = ""
-        }
-      } else if (line.includes("-->")) {
-        // Time range
-        const timeRange = line.match(/(\d{2}:\d{2}:\d{2}\.\d{3}) --> (\d{2}:\d{2}:\d{2}\.\d{3})/)
-        if (timeRange) {
-          currentStartTime = convertVttTimeToSeconds(timeRange[1])
-          currentEndTime = convertVttTimeToSeconds(timeRange[2])
-          currentId = String(index)
-        }
-      } else if (currentStartTime > 0) {
-        // Subtitle text
-        currentText += (currentText ? " " : "") + line
-      }
-    }
-
-    // Add the last subtitle if there is one
-    if (currentText) {
-      subtitles.push({
-        id: currentId || String(index),
-        startTime: currentStartTime,
-        endTime: currentEndTime,
-        text: currentText.trim(),
-      })
-    }
-
-    return subtitles
-  }
-
-  // Parse plain text subtitles (one subtitle per line)
-  const parseTxtSubtitles = (content: string): SubtitleItem[] => {
-    const subtitles: SubtitleItem[] = []
-    const lines = content.trim().split(/\r?\n/)
-
-    // Assume each line is displayed for 3 seconds
-    const durationPerLine = 3
-
-    lines.forEach((line, index) => {
-      if (line.trim()) {
-        const startTime = index * durationPerLine
-        const endTime = startTime + durationPerLine
-
-        subtitles.push({
-          id: String(index + 1),
-          startTime,
-          endTime,
-          text: line.trim(),
-        })
-      }
-    })
-
-    return subtitles
-  }
-
-  // Convert SRT time format (00:00:00,000) to seconds
-  const convertSrtTimeToSeconds = (timeString: string): number => {
-    const [time, milliseconds] = timeString.split(",")
-    const [hours, minutes, seconds] = time.split(":").map(Number)
-
-    return hours * 3600 + minutes * 60 + seconds + Number(milliseconds) / 1000
-  }
-
-  // Convert VTT time format (00:00:00.000) to seconds
-  const convertVttTimeToSeconds = (timeString: string): number => {
-    const [time, milliseconds] = timeString.split(".")
-    const [hours, minutes, seconds] = time.split(":").map(Number)
-
-    return hours * 3600 + minutes * 60 + seconds + Number(milliseconds) / 1000
   }
 
   // Create a sample SRT file for download

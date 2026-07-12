@@ -10,31 +10,11 @@ import { useToast } from "@/hooks/use-toast"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 
-export interface VideoInfo {
-  videoId: string
-  title: string
-  thumbnailUrl: string
-  channelTitle: string
-}
+import type { Subtitle, VideoInfo, VocabEntry } from "@/modules/shadowing/types"
 
-export interface SubtitleItem {
-  id: string
-  startTime: number
-  endTime: number
-  text: string
-  translation?: string
-  notes?: string
-  vocabularyItems?: VocabularyItem[]
-}
-
-export interface VocabularyItem {
-  id: string
-  word: string
-  definition: string
-  translation: string
-  examples: string[]
-  partOfSpeech: string
-}
+export type { VideoInfo }
+export type SubtitleItem = Subtitle
+export type VocabularyItem = VocabEntry
 
 const LanguageLearningApp = () => {
   const { toast } = useToast()
