@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { getServerEnv } from "@/lib/env"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -10,7 +11,7 @@ export async function GET(request: Request) {
 
   try {
     // Check if YouTube API key is available
-    const apiKey = process.env.YOUTUBE_API_KEY
+    const apiKey = getServerEnv("YOUTUBE_API_KEY")
 
     if (!apiKey) {
       // Return mock data if API key is not available
